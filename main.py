@@ -1,0 +1,49 @@
+import nextcord
+from nextcord.ext import commands
+import traceback
+import os
+from dotenv import load_dotenv, dotenv_values
+
+
+load_dotenv(dotenv_path='config\config.env')
+
+
+Prefix = os.getenv("Prefix")
+
+# Initialize bot with intents and prefix
+intents = nextcord.Intents.all()
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+# Test command
+@bot.command()
+async def test(ctx):
+    await ctx.send("test")
+
+# Event handler for when the bot is ready
+@bot.event
+async def on_ready():
+    print("------------")
+    print(f"Logged in as {bot.user.name}")
+    print("------------")
+
+
+# Load extensions (cogs) from directories
+for folder in os.listdir("cogs"):
+    folder_path = os.path.join("cogs", folder)
+    if os.path.isdir(folder_path):
+        for subfolder in os.listdir(folder_path):
+            subfolder_path = os.path.join(folder_path, subfolder)
+            if os.path.isdir(subfolder_path):
+                for file in os.listdir(subfolder_path):
+                    if file.endswith(".py"):
+                        extension_name = f"cogs.{folder}.{subfolder}.{file[:-3]}"
+                        try:
+                            bot.load_extension(extension_name)
+                        except Exception as e:
+                            print(f"Failed to load extension {extension_name}:")
+                            traceback.print_exc()
+
+#Retrieve the Bot Token from 
+Token = os.getenv("BOTTOKEN")
+if Token:
+    bot.run(Token)
